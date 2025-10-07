@@ -130,11 +130,14 @@ dmypy.json
 *~
 .DS_Store
 
-# Project specific
+# Project specific - actual submission files (with real group numbers)
 *.zip
-report-group-*.pdf
-code-group-*.zip
-readme-group-*.txt
+report-group-[0-9]*.pdf
+code-group-[0-9]*.zip
+readme-group-[0-9]*.txt
+
+# Keep template files with XX placeholder
+!readme-group-XX.txt
 
 # Test outputs
 output/

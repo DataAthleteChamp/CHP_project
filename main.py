@@ -1,16 +1,16 @@
 import sys
-from itertools import product
 from typing import List, Dict, Set, Tuple, Optional
 
 
 class SWESolver:
-    """Solver for SuperStringWithExpansion problem"""
+    """Optimized solver for SuperStringWithExpansion problem"""
 
     def __init__(self):
         self.k = 0
         self.s = ""
         self.patterns = []
         self.expansions = {}
+        self.pattern_cache = {}  # Cache for pattern validation
 
     def parse_input(self, lines: List[str]) -> bool:
         """Parse input in .SWE format"""
@@ -44,7 +44,7 @@ class SWESolver:
 
                 parts = line.split(':', 1)
                 symbol = parts[0].strip()
-                options = [opt.strip() for opt in parts[1].split(',')]
+                options = [opt.strip() for opt in parts[1].split(',') if opt.strip()]
                 self.expansions[symbol] = options
                 idx += 1
 
@@ -64,6 +64,41 @@ class SWESolver:
         """Check if needle is substring of haystack"""
         return needle in haystack
 
+    def get_pattern_symbols(self, pattern: str) -> Set[str]:
+        """Get all uppercase symbols in a pattern"""
+        return set(c for c in pattern if c.isupper())
+
+    def filter_by_length(self, symbol: str, options: List[str], assignment: Dict[str, str]) -> List[str]:
+        """
+        OPTIMIZATION: Filter options that are too long
+        For each pattern using this symbol, compute max allowed length
+        """
+        max_allowed = len(self.s)
+
+        for pattern in self.patterns:
+            if symbol not in pattern:
+                continue
+
+            # Calculate minimum length for this pattern
+            fixed_len = sum(1 for c in pattern if not c.isupper())
+            other_symbols = [c for c in pattern if c.isupper() and c != symbol and c not in assignment]
+
+            if other_symbols:
+                # Other unassigned symbols - use minimum lengths
+                other_min = sum(min(len(opt) for opt in self.expansions.get(sym, ['']))
+                               for sym in other_symbols)
+            else:
+                other_min = 0
+
+            assigned_len = sum(len(assignment.get(c, '')) for c in pattern if c.isupper() and c in assignment)
+
+            # Max length for current symbol to fit
+            pattern_max = len(self.s) - fixed_len - other_min - assigned_len
+            max_allowed = min(max_allowed, pattern_max)
+
+        # Filter options
+        return [opt for opt in options if len(opt) <= max_allowed]
+
     def check_assignment(self, assignment: Dict[str, str]) -> bool:
         """Check if an assignment makes all patterns substrings of s"""
         for pattern in self.patterns:
@@ -72,28 +107,48 @@ class SWESolver:
                 return False
         return True
 
-    def prune_early(self, partial_assignment: Dict[str, str],
-                    remaining_symbols: List[str]) -> bool:
+    def prune_early(self, partial_assignment: Dict[str, str]) -> bool:
         """
-        Heuristic: Check if current partial assignment can possibly work
+        Enhanced pruning: Check if current partial assignment can possibly work
         Returns True if we should continue, False if we can prune
         """
-        # Check patterns that only use assigned symbols
+        assigned_symbols = set(partial_assignment.keys())
+
         for pattern in self.patterns:
-            # Check if pattern only uses assigned symbols
-            pattern_symbols = set(c for c in pattern if c.isupper())
-            if pattern_symbols.issubset(set(partial_assignment.keys())):
+            pattern_symbols = self.get_pattern_symbols(pattern)
+
+            # If all symbols in pattern are assigned, check immediately
+            if pattern_symbols.issubset(assigned_symbols):
                 expanded = self.expand_pattern(pattern, partial_assignment)
                 if not self.is_substring(expanded, self.s):
                     return False
+
+            # Additional check: if partially expanded pattern is already too long
+            elif pattern_symbols.intersection(assigned_symbols):
+                # Get partially expanded pattern
+                partial = pattern
+                for sym in assigned_symbols:
+                    if sym in partial:
+                        partial = partial.replace(sym, partial_assignment[sym])
+
+                # Count remaining symbols
+                remaining_symbols = [c for c in partial if c.isupper()]
+                if remaining_symbols:
+                    min_remaining = sum(min(len(opt) for opt in self.expansions.get(c, ['']))
+                                       for c in remaining_symbols)
+                    min_total = len([c for c in partial if not c.isupper()]) + min_remaining
+
+                    if min_total > len(self.s):
+                        return False
+
         return True
 
     def solve_bruteforce(self) -> Optional[Dict[str, str]]:
         """
-        Brute force solver with pruning heuristics
+        Optimized solver with aggressive pruning
         """
         # Get all symbols that need assignment
-        symbols = sorted(self.expansions.keys())
+        symbols = list(self.expansions.keys())
 
         if not symbols:
             # No symbols to expand, check if patterns are substrings
@@ -102,27 +157,57 @@ class SWESolver:
                     return None
             return {}
 
-        # Heuristic 1: Quick check for impossible cases
-        # If target string is too short, impossible
+        # Check if any expansion set is empty
+        for symbol in symbols:
+            if not self.expansions[symbol]:
+                return None
+
+        # HEURISTIC 1: Variable ordering - most constrained first
+        def symbol_priority(sym):
+            # Count how many patterns use this symbol
+            pattern_count = sum(1 for p in self.patterns if sym in p)
+            # Number of options
+            option_count = len(self.expansions.get(sym, []))
+            # Prioritize: high constraint, few options
+            return (-pattern_count, option_count)
+
+        symbols = sorted(symbols, key=symbol_priority)
+
+        # HEURISTIC 2: Check for trivially unsolvable cases
+        for pattern in self.patterns:
+            pattern_symbols = self.get_pattern_symbols(pattern)
+            if not pattern_symbols:  # Fixed pattern
+                if not self.is_substring(pattern, self.s):
+                    return None
+
+        # HEURISTIC 3: Length feasibility check
         min_pattern_len = float('inf')
         for pattern in self.patterns:
             pattern_chars = [c for c in pattern if not c.isupper()]
             symbol_chars = [c for c in pattern if c.isupper()]
-            min_expansion = sum(min(len(opt) for opt in self.expansions.get(c, ['']))
-                                for c in symbol_chars)
-            total_min = len(''.join(pattern_chars)) + min_expansion
+
+            if symbol_chars:
+                if not all(c in self.expansions for c in symbol_chars):
+                    return None
+
+                min_expansion = sum(min(len(opt) for opt in self.expansions.get(c, ['']))
+                                    for c in symbol_chars)
+                total_min = len(pattern_chars) + min_expansion
+            else:
+                total_min = len(pattern_chars)
+
             min_pattern_len = min(min_pattern_len, total_min)
 
         if len(self.s) < min_pattern_len:
             return None
 
-        # Generate all possible assignments using backtracking with pruning
+        # Start backtracking
         return self.backtrack_solve(symbols, {}, 0)
 
     def backtrack_solve(self, symbols: List[str],
                         assignment: Dict[str, str],
                         depth: int) -> Optional[Dict[str, str]]:
-        """Backtracking solver with pruning"""
+        """Backtracking solver with aggressive pruning"""
 
         # Base case: all symbols assigned
         if depth == len(symbols):
@@ -131,15 +216,21 @@ class SWESolver:
             return None
 
         # Prune if current partial assignment already fails
-        if not self.prune_early(assignment, symbols[depth:]):
+        if not self.prune_early(assignment):
             return None
 
-        # Try each option for current symbol
+        # Get current symbol to assign
         current_symbol = symbols[depth]
         options = self.expansions[current_symbol]
 
-        # Heuristic 2: Try shorter replacements first (often more likely to fit)
-        sorted_options = sorted(options, key=len)
+        # OPTIMIZATION: Filter options by length feasibility
+        filtered_options = self.filter_by_length(current_symbol, options, assignment)
+
+        if not filtered_options:
+            return None  # No valid options
+
+        # HEURISTIC: Try shorter options first (more likely to fit)
+        sorted_options = sorted(filtered_options, key=len)
 
         for option in sorted_options:
             assignment[current_symbol] = option
