@@ -1,0 +1,250 @@
+Course 02249, DTU Compute
+Carsten Witt
+Computationally Hard Problems – Fall 2025
+Assignment Project
+
+Date: 07.10.2025
+Due date: 03.11.2025, 21:00
+
+This project should be performed in groups consisting of three students. Please
+register your group on DTU Learn and state the division of labor within your
+group in your submission.
+
+The following exercise is mandatory:
+
+===============================================================================
+Exercise Project.1: Consider the following problem.
+===============================================================================
+
+Problem: [SuperStringWithExpansion]
+
+Input:
+a) 2 disjoint alphabets called Σ and Γ = {γ₁, . . . , γₘ},
+b) a string s ∈ Σ*,
+c) k strings t₁, . . . , tₖ ∈ (Σ ∪ Γ)*,
+d) and subsets R₁, . . . , Rₘ ⊆ Σ*, all being of finite size.
+
+Output: YES if there is a sequence of words r₁ ∈ R₁, r₂ ∈ R₂, . . . , rₘ ∈ Rₘ
+such that for all i ∈ {1, . . . , k} the so-called expansion e(tᵢ) is a substring
+of s; the expansion e(γⱼ) of the j-th letter γⱼ ∈ Γ, 1 ≤ j ≤ m, is defined by
+e(γⱼ) := rⱼ, and the expansion e(t) of a whole string t ∈ (Σ ∪ Γ)* is obtained
+by replacing all letters from Γ appearing within t by their expansions.
+Otherwise output NO.
+
+Formally, we say that v = v₁v₂ · · · vₗᵥ is a substring of w = w₁w₂ · · · wₗw
+if there is a j, 1 ≤ j ≤ ℓw - ℓv + 1, such that for all k = 1, 2, . . . , ℓv
+we have vₖ = wⱼ₊ₖ₋₁.
+
+Also formally, replacing the i-th letter vᵢ of the string v = v₁v₂ · · · vₗᵥ
+by the string w = w₁w₂ · · · wₗw results in the string
+v₁v₂ · · · vᵢ₋₁w₁w₂ · · · wₗw vᵢ₊₁vᵢ₊₂ · · · vₗᵥ.
+
+Some problem instances on the alphabets Σ = {a, b, . . . , z},
+Γ ⊆ {A, B, . . . , Z} are given on DTU Learn as text files in the following
+SWE format:
+
+The file is an ASCII file consisting of lines separated by the line-feed symbol;
+besides the line-feed, the only allowed characters in the file are numbers
+{0, 1, . . . , 9}, lower-case letters (Σ), upper-case letters (Γ), the colon (":")
+and the comma symbol.
+
+The first line of the file contains the number k. The second line contains the
+string s and the following k lines the strings t₁, . . . , tₖ. Finally, the last
+lines (at most 26) start with a letter γⱼ ∈ Γ followed by a colon and the
+contents of the set Rⱼ belonging to the letter, where the elements of the set
+are separated by commas.
+
+An example: The file test01.SWE reads as follows:
+
+4
+abdde
+ABD
+DDE
+AAB
+ABd
+A:a,b,c,d,e,f,dd
+B:a,b,c,d,e,f,dd
+C:a,b,c,d,e,f,dd
+D:a,b,c,d,e,f,dd
+E:aa,bd,c,d,e
+
+===============================================================================
+What you have to do:
+===============================================================================
+
+a) Read and understand the problem. You do not have to comment on this in the
+   report.
+
+b) Determine whether the answer for test01.SWE is YES or NO and justify your
+   solution.
+
+c) Describe the formal language that we use in the .SWE file format to represent
+   inputs to SuperStringWithExpansion and describe how to solve the word problem
+   for a word over the underlying alphabet. Note that every formal language is
+   defined over a single alphabet only.
+
+d) Assume you are given an algorithm Ad for the decision version of
+   SuperStringWithExpansion as described above. Show how to convert it into an
+   algorithm Ao for the optimization version of the problem, i.e., an algorithm
+   that given the specified input, computes the sequence of words r₁, r₂, . . . , rₘ
+   or answers NO if no such sequence exists. The algorithm Ao has to run in
+   polynomial time, assuming that a call to Ad takes one computational step.
+   Prove running time and correctness.
+
+e) Show that SuperStringWithExpansion is in NP.
+
+f) Show that SuperStringWithExpansion is NP-complete. As reference problem you
+   have to select a problem from the list of NP-complete problems given below.
+   Note that there may be many different approaches to prove NP-completeness.
+
+g) Design an algorithm which receives an input to SuperStringWithExpansion in the
+   general format given above (not restricted to .SWE format) and always gives the
+   correct answer, i.e., which always stops and determines whether the input
+   instance is a YES or NO instance. The algorithm is allowed have exponential
+   worst-case running time (i.e. bounded by 2^p(n), where n is the size of the
+   input and p some polynomial), but should contain some heuristic elements that
+   allow for faster execution on certain types of instances. For example, a
+   heuristic may be used to quickly identify cases where the answer must be NO.
+   Describe in natural language how the algorithm works, prove its correctness
+   and running time, and explain the heuristic elements.
+
+   When you later implement the algorithm (part i) below), you have to restrict
+   its inputs to .SWE files. If the instance is a NO-instance (including the input
+   is malformed, i.e., does not comply with .SWE format), your algorithm must
+   output NO. If it is a YES-instance, your algorithm has to construct a solution
+   r₁, . . . , rₘ and output the solution. The format of the output should then
+   only be a list of lines in the format γᵢ : rᵢ, where γᵢ is an upper-case
+   letter and rᵢ the chosen element of Rᵢ, for example (not a solution to test01.SWE)
+
+   A:a
+   B:b
+   C:c
+   D:d
+   E:e
+
+h) Analyze the worst-case running time of the algorithm with respect to the
+   general input format.
+
+i) Implement the algorithm you developed in Part g). It has to be able to read
+   inputs in .SWE format from standard input (not as a command line argument)
+   and, as described in g), it must always solve the corresponding problem
+   correctly by outputting a solution (or NO if no solution is possible) to
+   standard output. It is important to use only standard input and standard
+   output for communication, i.e., the program must not require additional
+   command-line arguments or user interaction to read from a file etc. Failing
+   to do so will reduce your score.
+
+   We expect you to test your code on the instances published on DTU Learn as
+   well as on other instances. If your code does not solve all tests
+   test01.SWE–test06.SWE on DTU Learn, you should try to improve it. The
+   teachers will take into account the total number of solved test instances
+   (not necessarily limited to the ones on Learn) for the final score you
+   receive for this whole assignment.
+
+===============================================================================
+Submission Requirements:
+===============================================================================
+
+You have to submit exactly three files to the corresponding assignment on DTU Learn.
+Replace XX with your group number.
+
+• a PDF file called report-group-XX.pdf with your solutions to the theoretical
+  (non-programming) parts of this project,
+
+• the full source code of your implementation as a ZIP file called
+  code-group-XX.zip; the top level of the zip file should contain the root of
+  the project, i.e. not a single directory that contains the root of the project
+  (hint: zip the files/directories in the root of the project, not the directory
+  containing the whole project)
+
+• and an instruction how to compile and run your implementation as a text file
+  called readme-group-XX.txt.
+
+Do not duplicate files, in particular, do not include the report and readme file
+in the zip archive.
+
+Accepted programming languages are Java, C, C++ and Python. If you prefer other
+languages, you have to contact the teachers. Note that the latest version submitted
+before the deadline will be evaluated. We reserve the right to deduce points if you
+do not comply with the above guidelines, including conventions for file types, file
+structures and names, which are case sensitive.
+
+The three blocks [b)–f)], [g),h)], and [i)] have approximately weights of 50%, 25%,
+and 25%, respectively, in the grading. Please state in your report the division of
+labor, i.e., describe the contributions of the individual group members.
+
+===============================================================================
+List of NP-complete problems to choose from:
+===============================================================================
+
+Problem: [PartitionInto3-Sets]
+Input: A sequence X = (x₁, x₂, . . . , x₃ₙ) of 3n natural numbers, and a natural
+number B, such that (B/4) < xᵢ < (B/2) for all i ∈ {1, 2, . . . , 3n} and
+Σᵢ₌₁³ⁿ xᵢ = nB.
+Output: YES if X can be partitioned into n disjoint sets X₁, X₂, . . . , Xₙ such
+that for all j ∈ {1, 2, . . . , n} one has Σₓ∈Xⱼ x = B.
+
+-------------------------------------------------------------------------------
+
+Problem: [1-In-3-Satisfiability]
+Input: A set of clauses C = {c₁, . . . , cₖ} over n boolean variables x₁, . . . , xₙ,
+where every clause contains exactly three literals.
+Output: YES if there is a satisfying assignment such that every clause has exactly
+one true literal, i.e., if there is an assignment a : {x₁, . . . , xₙ} → {0, 1}
+such that every clause cⱼ is satisfied and no clause has two or three satisfied
+literals, and NO otherwise.
+
+-------------------------------------------------------------------------------
+
+Problem: [MinimumCliqueCover]
+Input: An undirected graph G = (V, E) and a natural number k.
+Output: YES if there is clique cover for G of size at most k. That is, a collection
+V₁, V₂, . . . , Vₖ of not necessarily disjoint subsets of V, such that each Vᵢ
+induces a complete subgraph of G and such that for each edge {u, v} ∈ E there is
+some Vᵢ that contains both u and v. NO otherwise.
+
+-------------------------------------------------------------------------------
+
+Problem: [Graph-3-Coloring]
+Input: An undirected graph G = (V, E).
+Output: YES if there is a 3-coloring of G and NO otherwise. A 3-coloring assigns
+every vertex one of 3 colors such that adjacent vertices have different colors.
+
+-------------------------------------------------------------------------------
+
+Problem: [Longest-Common-Subsequence]
+Input: A sequence w₁, w₂, . . . , wₙ of strings over an alphabet Σ and a natural
+number B.
+Output: YES if there is a string x over Σ of length B which is a subsequence of
+all wᵢ. The answer is NO otherwise.
+
+Formally, we say that x = x₁x₂ · · · xₗₓ is a subsequence of w = w₁w₂ · · · wₗw
+if there is a strictly increasing sequence of indices iⱼ, 1 ≤ j ≤ ℓx, such that
+for all j = 1, 2, . . . , ℓx we have xⱼ = wᵢⱼ.
+
+-------------------------------------------------------------------------------
+
+Problem: [MinimumRectangleTiling]
+Input: An n × n array A of non-negative numbers, positive integers k and B.
+Output: YES if there is a partition of A into k non-overlapping rectangular
+sub-arrays such that the sum of the entries every sub-array is at most B.
+NO otherwise.
+
+-------------------------------------------------------------------------------
+
+Problem: [Minimum Graph Transformation]
+Input: Undirected graphs G₁ = (V₁, E₁), G₂ = (V₂, E₂) and an integer k > 0.
+Output: YES if there is a transformation of order k that makes G₁ isomorphic to G₂,
+and NO otherwise. A transformation of order k removes k existing edges from E₁ and
+then adds k new edges to E₁.
+
+-------------------------------------------------------------------------------
+
+Problem: [MinimumDegreeSpanningTree]
+Input: A graph G = (V, E) and an integer k.
+Output: YES if there is a spanning tree T in which every node has degree at most k;
+NO otherwise.
+
+===============================================================================
+End of Exercise Project.1
+===============================================================================

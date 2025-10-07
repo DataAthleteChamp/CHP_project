@@ -1,0 +1,15 @@
+# SuperStringWithExpansion Solver
+# Python Standard Library Only - No External Dependencies Required
+
+# This project uses only Python standard library modules:
+# - sys
+# - itertools
+# - typing
+
+# Python Version Requirement
+# python>=3.7
+
+# Optional: Development and Testing Tools
+# pytest>=7.0.0
+# pylint>=2.15.0
+# black>=22.0.0
