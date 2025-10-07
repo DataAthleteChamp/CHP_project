@@ -172,15 +172,12 @@ class SWESolver:
 
 def main():
     """Main entry point"""
-    # Read input from hardcoded file
-    import os
-    file_path = os.path.join(os.path.dirname(__file__), 'data', 'test01.swe')
-
+    # Read input from stdin as required by assignment
+    lines = []
     try:
-        with open(file_path, 'r') as f:
-            lines = [line.rstrip('\n\r') for line in f]
-    except FileNotFoundError:
-        print(f"Error: Could not find {file_path}")
+        for line in sys.stdin:
+            lines.append(line.rstrip('\n\r'))
+    except Exception:
         print("NO")
         return
 

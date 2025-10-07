@@ -90,11 +90,9 @@ The solver reads input from standard input in .SWE format:
 # Run with standard input
 python main.py < data/test01.swe
 
-# Or use input redirection
+# Or use pipe
 cat data/test01.swe | python main.py
 ```
-
-**Note:** The current version has `data/test01.swe` hardcoded for testing purposes. To use standard input, modify `main.py` line 177.
 
 ### Output Format
 
@@ -144,7 +142,25 @@ Test files are provided in the `data/` directory:
 # Test individual files
 python main.py < data/test01.swe
 python main.py < data/test02.swe
+
+# Test all files
+for file in data/test*.swe; do
+    echo "Testing $file"
+    python main.py < "$file"
+    echo
+done
 ```
+
+### Test Results
+
+| Test File | Status | Notes |
+|-----------|--------|-------|
+| test01.swe | NO | No valid solution exists |
+| test02.swe | YES | Solution found |
+| test03.swe | NO | No valid solution exists |
+| test04.swe | - | Large instance, may timeout |
+| test05.swe | - | Pending |
+| test06.swe | - | Pending |
 
 ## Division of Labor
 
